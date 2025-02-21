@@ -19,12 +19,12 @@ init_args "pull" "批量 pull"
 init_args "branch" "显示本地仓库当前分支"
 init_args "branch_all" "显示本地仓库所有分支"
 init_args "rm_branch" "删除本地仓库除当前分支及 master 分支之外的所有其他分支"
-init_args "checkout" "批量切换到本地分支；若本地无对应分支则从远程拉取并切换。参数2 指定分支名称关键字"
-init_args "single_checkout" "切换单个本地仓库到本地分支。参数2 指定需要切换的仓库目录名称，参数3 指定分支名称关键字"
+init_args "checkout" "批量切换到指定关键字对应分支；若本地无对应分支则从远程拉取并切换。参数2 指定分支名称关键字"
+init_args "single_checkout" "切换单个本地仓库到指定关键字对应分支。参数2 指定需要切换的仓库目录名称，参数3 指定分支名称关键字"
 init_args "merge_master_create_tag" "将指定分支合并到远程仓库的 master 分支，并创建 TAG 。参数2 指定分支名称关键字"
-init_args "check_branch_merge" "检查远程仓库指定分支未合并进来的其他分支。参数2 指定分支名称关键字"
-init_args "tortoisegit_revision_graph" "在 Windows 环境下打开仓库的 TortoiseGit Revision Graph 窗口。参数2 指定分支名称关键字，若未指定参数2 则处理每个子目录的 Git 仓库"
-init_args "close_tortoisegit_revision_graph" "在 Windows 环境下关闭 TortoiseGit Revision Graph 窗口"
+init_args "check_branch_merge" "检查远程仓库指定关键字对应分支未合并进来的其他分支。参数2 指定分支名称关键字"
+init_args "tortoisegit_revision_graph" "在 Windows 环境下打开 Git 本地仓库的 TortoiseGit Revision graph 窗口。参数2 指定分支名称关键字，若未指定参数2 则处理每个子目录的 Git 本地仓库"
+init_args "close_tortoisegit_revision_graph" "在 Windows 环境下关闭 TortoiseGit Revision graph 窗口"
 
 INSTALLED_FLAG=~/.git_batch_shell.installed
 GIT_BATCH_COMMAND=gitbatch
@@ -90,11 +90,11 @@ help () {
 
 pull () {
     for dir in $(find . -maxdepth 1 -type d); do
-        if [ ! -d $dir/.git ]; then
+        if [ ! -d "$dir"/.git ]; then
             continue
         fi
-        cd $dir
-        dir_name=$(echo $dir | awk -F './' '{print $2}')
+        cd "$dir"
+        dir_name=$(echo "$dir" | awk -F './' '{print $2}')
         branch=$(git branch | grep '* ' | awk '{print $2}')
         echo "pull 仓库 ${dir_name} 当前分支 ${branch}"
         git pull
@@ -104,11 +104,11 @@ pull () {
 
 branch () {
     for dir in $(find . -maxdepth 1 -type d); do
-        if [ ! -d $dir/.git ]; then
+        if [ ! -d "$dir"/.git ]; then
             continue
         fi
-        cd $dir
-        dir_name=$(echo $dir | awk -F './' '{print $2}')
+        cd "$dir"
+        dir_name=$(echo "$dir" | awk -F './' '{print $2}')
         branch=$(git branch | grep '* ' | awk '{print $2}')
         echo "仓库 ${dir_name} 当前分支 ${branch}"
         cd ..
@@ -117,11 +117,11 @@ branch () {
 
 branch_all () {
     for dir in $(find . -maxdepth 1 -type d); do
-        if [ ! -d $dir/.git ]; then
+        if [ ! -d "$dir"/.git ]; then
             continue
         fi
-        cd $dir
-        dir_name=$(echo $dir | awk -F './' '{print $2}')
+        cd "$dir"
+        dir_name=$(echo "$dir" | awk -F './' '{print $2}')
         echo "仓库 ${dir_name} 本地分支如下:"
         git branch
         echo ""
@@ -131,15 +131,16 @@ branch_all () {
 
 rm_branch () {
     for dir in $(find . -maxdepth 1 -type d); do
-        if [ ! -d $dir/.git ]; then
+        if [ ! -d "$dir"/.git ]; then
             continue
         fi
-        cd $dir
-        dir_name=$(echo $dir | awk -F './' '{print $2}')
+        cd "$dir"
+        dir_name=$(echo "$dir" | awk -F './' '{print $2}')
         for branch in $(git branch | grep -v '*' | grep -v 'master' | tr -d ' '); do
             echo "${dir_name} 删除本地分支 ${branch}"
             git branch -d ${branch}
         done
+        echo "${dir_name} 本地分支 ${branch}"
         git branch
         echo ""
         cd ..
@@ -154,11 +155,11 @@ checkout () {
     fi
 
     for dir in $(find . -maxdepth 1 -type d); do
-        if [ ! -d $dir/.git ]; then
+        if [ ! -d "$dir"/.git ]; then
             continue
         fi
-        cd $dir
-        dir_name=$(echo $dir | awk -F './' '{print $2}')
+        cd "$dir"
+        dir_name=$(echo "$dir" | awk -F './' '{print $2}')
         echo "处理 Git 仓库目录 ${dir_name}"
         checkout_common
         cd ..
@@ -166,18 +167,18 @@ checkout () {
 }
 
 single_checkout () {
-    dir_name=$1
-    if [[ "$dir_name" == "" ]]; then
+    dir=$1
+    if [[ "$dir" == "" ]]; then
         echo "未在参数1指定需要切换的仓库目录名称"
         return
     fi
 
-    if [ ! -d $dir_name ]; then
-        echo "${dir_name} 目录不存在"
+    if [ ! -d "$dir" ]; then
+        echo "${dir} 目录不存在"
         return
     fi
-    if [ ! -d $dir_name/.git ]; then
-        echo "${dir_name} 目录未找到 .git 目录，可能不是 Git 仓库目录"
+    if [ ! -d "$dir"/.git ]; then
+        echo "${dir} 目录未找到 .git 目录，可能不是 Git 仓库目录"
         return
     fi
     
@@ -187,8 +188,8 @@ single_checkout () {
         return
     fi
 
-    cd $dir_name
-    echo "处理 Git 仓库目录 ${dir_name}"
+    cd "$dir"
+    echo "处理 Git 仓库目录 ${dir}"
     checkout_common
     cd ..
 }
@@ -218,11 +219,11 @@ merge_master_create_tag () {
     branch_not_found_reps=()
     push_fail_reps=()
     for dir in $(find . -maxdepth 1 -type d); do
-        if [ ! -d $dir/.git ]; then
+        if [ ! -d "$dir"/.git ]; then
             continue
         fi
-        cd $dir
-        dir_name=$(echo $dir | awk -F './' '{print $2}')
+        cd "$dir"
+        dir_name=$(echo "$dir" | awk -F './' '{print $2}')
         echo "处理 Git 仓库目录 ${dir_name}"
         git pull
         get_branch_by_keyword $branch_keyword
@@ -241,7 +242,7 @@ merge_master_create_tag () {
                 git merge origin/${GIT_BATCH_BRANCH_NAME}
                 git push origin master
                 if [[ ! $? -eq 0 ]]; then
-                    push_fail_reps+=("${dir_name}")
+                    push_fail_reps+=("$dir_name")
                 fi
             fi
             tag_name="tag_${GIT_BATCH_BRANCH_NAME}"
@@ -259,7 +260,7 @@ merge_master_create_tag () {
             fi
             echo ""
         else
-            branch_not_found_reps+=("${dir_name}")
+            branch_not_found_reps+=("$dir_name")
         fi
         cd ..
     done
@@ -287,41 +288,41 @@ check_branch_merge () {
     dir_hash=$(echo "$(pwd)@${branch_keyword}" | md5sum | awk '{print $1}')
     RESULT="${RESULT_DIR}/${dir_hash}.txt"
     echo 
-    echo "当前目录 $(pwd)" > $RESULT
-    echo -e "当前时间 $(date)\n" >> $RESULT
+    echo "当前目录 $(pwd)" > "$RESULT"
+    echo -e "当前时间 $(date)\n" >> "$RESULT"
     for dir in $(find . -maxdepth 1 -type d); do
-        if [ ! -d $dir/.git ]; then
+        if [ ! -d "$dir"/.git ]; then
             continue
         fi
-        cd $dir
-        dir_name=$(echo $dir | awk -F './' '{print $2}')
+        cd "$dir"
+        dir_name=$(echo "$dir" | awk -F './' '{print $2}')
         echo "处理 Git 仓库目录 ${dir_name}"
         git pull
         get_branch_by_keyword $branch_keyword
         if [[ $? -eq 0 ]]; then   
-            echo "${dir_name} 检查未合并的分支 origin/${GIT_BATCH_BRANCH_NAME}" >> $RESULT 
+            echo "${dir_name} 检查未合并进来的分支 origin/${GIT_BATCH_BRANCH_NAME}" >> "$RESULT"
             no_merged_branches=$(git branch -r --no-merged origin/${GIT_BATCH_BRANCH_NAME} | tr -d ' ')
-            echo "${dir_name} origin/${GIT_BATCH_BRANCH_NAME} 未合并的分支 ${no_merged_branches}"
+            echo "${dir_name} origin/${GIT_BATCH_BRANCH_NAME} 未合并进来的分支 ${no_merged_branches}"
             master_not_merged=$(echo $no_merged_branches | grep 'origin/master' | wc -l)
             if [[ $master_not_merged -gt 0 ]]; then
-                echo "${dir_name} origin/${GIT_BATCH_BRANCH_NAME} master分支未合并" >> $RESULT 
+                echo "${dir_name} origin/${GIT_BATCH_BRANCH_NAME} !!! origin/master 分支未合并" >> "$RESULT"
             fi
             for no_merged_branch in $no_merged_branches
             do
-                echo "${dir_name} origin/${GIT_BATCH_BRANCH_NAME} 未合并的分支 $no_merged_branch" >> $RESULT 
+                echo "${dir_name} origin/${GIT_BATCH_BRANCH_NAME} 未合并进来的分支 $no_merged_branch" >> "$RESULT"
             done
-            open_tortoisegit_revisiongraph $dir_name
+            open_tortoisegit_revisiongraph "$dir_name"
         else
-            echo "$dir_name 根据关键字未找到或存在多个分支 ${branch_keyword} origin/${GIT_BATCH_BRANCH_NAME}" >> $RESULT
+            echo "$dir_name 根据关键字未找到或存在多个分支 ${branch_keyword} origin/${GIT_BATCH_BRANCH_NAME}" >> "$RESULT"
         fi
         echo ""
-        echo "" >> $RESULT
+        echo "" >> "$RESULT"
         cd ..
     done
     echo -e "\n处理完毕，以下为处理结果 ${RESULT} : \n"
-    cat $RESULT
+    cat "$RESULT"
     if [[ $WINDOWS_FLAG -eq 1 ]]; then
-        notepad.exe $(realpath $RESULT) &
+        notepad.exe $(realpath "$RESULT") &
     fi
 }
 
@@ -338,21 +339,22 @@ tortoisegit_revision_graph () {
     fi
     check_exist_tortoisegitproc
     for dir in $(find . -maxdepth 1 -type d); do
-        if [ ! -d $dir/.git ]; then
+        if [ ! -d "$dir"/.git ]; then
             continue
         fi
-        cd $dir
-        dir_name=$(echo $dir | awk -F './' '{print $2}')
+        cd "$dir"
+        dir_name=$(echo "$dir" | awk -F './' '{print $2}')
         echo "处理 Git 仓库目录 ${dir_name}"
         git pull
         if [[ "$branch_keyword" == "" ]]; then
-            open_tortoisegit_revisiongraph $dir_name
+            open_tortoisegit_revisiongraph "$dir_name"
         else
             get_branch_by_keyword $branch_keyword
             if [[ $? -eq 0 ]]; then
-                open_tortoisegit_revisiongraph $dir_name
+                open_tortoisegit_revisiongraph "$dir_name"
             fi
         fi
+        cd ..
     done
 }
 
@@ -386,10 +388,10 @@ get_branch_by_keyword () {
 }
 
 open_tortoisegit_revisiongraph () {
-    dir_name=$1
-    full_path=$(realpath dir_name)
+    full_path=$(realpath $1)
     if [[ $WINDOWS_FLAG -eq 1 ]]; then
-        TortoiseGitProc.exe /command:revisiongraph /path:\"$full_path\" &
+        echo "${full_path} 打开TortoiseGit Revision graph 窗口"
+        TortoiseGitProc.exe /command:revisiongraph /path:\"${full_path}\" &
     fi
 }
 
